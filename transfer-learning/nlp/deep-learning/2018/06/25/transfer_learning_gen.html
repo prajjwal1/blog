@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Using Transfer Learning to Introduce Generalization in Models | Prajjwal’s blog</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="Using Transfer Learning to Introduce Generalization in Models" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Leveraging transfer learning to improve generalization capabilities of deep learning models" />
+<meta property="og:description" content="Leveraging transfer learning to improve generalization capabilities of deep learning models" />
+<link rel="canonical" href="https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/06/25/transfer_learning_gen.html" />
+<meta property="og:url" content="https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/06/25/transfer_learning_gen.html" />
+<meta property="og:site_name" content="Prajjwal’s blog" />
+<meta property="og:image" content="https://prajjwal1.github.io/blog/images/transfer_learning_gen/cover.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-06-25T00:00:00-05:00" />
+<script type="application/ld+json">
+{"datePublished":"2018-06-25T00:00:00-05:00","headline":"Using Transfer Learning to Introduce Generalization in Models","image":"https://prajjwal1.github.io/blog/images/transfer_learning_gen/cover.jpg","description":"Leveraging transfer learning to improve generalization capabilities of deep learning models","mainEntityOfPage":{"@type":"WebPage","@id":"https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/06/25/transfer_learning_gen.html"},"@type":"BlogPosting","url":"https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/06/25/transfer_learning_gen.html","dateModified":"2018-06-25T00:00:00-05:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://prajjwal1.github.io/blog/feed.xml" title="Prajjwal's blog" /><link rel="shortcut icon" type="image/x-icon" href="/blog/images/favicon.ico"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Using Transfer Learning to Introduce Generalization in Models | Prajjwal’s blog</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="Using Transfer Learning to Introduce Generalization in Models" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Leveraging transfer learning to improve generalization capabilities of deep learning models" />
+<meta property="og:description" content="Leveraging transfer learning to improve generalization capabilities of deep learning models" />
+<link rel="canonical" href="https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/06/25/transfer_learning_gen.html" />
+<meta property="og:url" content="https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/06/25/transfer_learning_gen.html" />
+<meta property="og:site_name" content="Prajjwal’s blog" />
+<meta property="og:image" content="https://prajjwal1.github.io/blog/images/transfer_learning_gen/cover.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-06-25T00:00:00-05:00" />
+<script type="application/ld+json">
+{"datePublished":"2018-06-25T00:00:00-05:00","headline":"Using Transfer Learning to Introduce Generalization in Models","image":"https://prajjwal1.github.io/blog/images/transfer_learning_gen/cover.jpg","description":"Leveraging transfer learning to improve generalization capabilities of deep learning models","mainEntityOfPage":{"@type":"WebPage","@id":"https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/06/25/transfer_learning_gen.html"},"@type":"BlogPosting","url":"https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/06/25/transfer_learning_gen.html","dateModified":"2018-06-25T00:00:00-05:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+<link href="https://unpkg.com/@primer/css/dist/primer.css" rel="stylesheet" />
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css"><link type="application/atom+xml" rel="alternate" href="https://prajjwal1.github.io/blog/feed.xml" title="Prajjwal's blog" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css" integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous">
+    <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML"> </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js" integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head><body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/blog/">Prajjwal&#39;s blog</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/blog/about/">About Me</a><a class="page-link" href="/blog/search/">Search</a><a class="page-link" href="/blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Using Transfer Learning to Introduce Generalization in Models</h1><p class="page-description">Leveraging transfer learning to improve generalization capabilities of deep learning models</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2018-06-25T00:00:00-05:00" itemprop="datePublished">
+        Jun 25, 2018
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      8 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/blog/categories/#transfer-learning">transfer-learning</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blog/categories/#nlp">nlp</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blog/categories/#deep-learning">deep-learning</a>
+        
+      
+      </p>
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h1"><a href="#abstract">Abstract</a></li>
+<li class="toc-entry toc-h1"><a href="#transfer-learning-is-the-key">Transfer Learning is the Key</a></li>
+<li class="toc-entry toc-h1"><a href="#transfer-learning-in-natural-language-processing">Transfer Learning in Natural Language Processing</a></li>
+<li class="toc-entry toc-h1"><a href="#learning-without-forgetting">Learning without Forgetting</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#what-weve-actually-been-doing-curve-fitting">What We’ve Actually Been Doing: Curve Fitting</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h1"><a href="#how-to-perform-training">How to Perform Training</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#the-rationale-for-this-training-approach">The Rationale for this Training Approach</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h1"><a href="#observations">Observations</a></li>
+</ul><p>The following article first appeared on <a href="https://software.intel.com/en-us/articles/part-1-using-transfer-learning-to-introduce-generalization-in-models">Intel Developer Zone</a>.</p>
+
+<h1 id="abstract">
+<a class="anchor" href="#abstract" aria-hidden="true"><span class="octicon octicon-link"></span></a>Abstract</h1>
+<p>Researchers often try to capture as much information as they can, either by using existing architectures, creating new ones, going deeper, or employing different training methods. This paper compares different ideas and methods that are used heavily in Machine Learning to determine what works best. These methods are prevalent in various domains of Machine Learning, such as Computer Vision and Natural Language Processing (NLP).</p>
+
+<h1 id="transfer-learning-is-the-key">
+<a class="anchor" href="#transfer-learning-is-the-key" aria-hidden="true"><span class="octicon octicon-link"></span></a>Transfer Learning is the Key</h1>
+
+<p>Throughout our work, we have tried to bring generalization into context, because that’s what matters in the end. Any model should be robust and able to work outside your research environment. When a model lacks generalization, very often we try to train the model on datasets it has never encountered … and that’s when things start to get much more complex. Each dataset comes with its own added features which we have to adjust to accommodate our model.</p>
+
+<p>One common way to do so is to transfer learning from one domain to another.</p>
+
+<p>Given a specific task in a particular domain, for which we need labelled images for the same task and domain, we train our model on that dataset. In practice, the dataset is usually the largest in that domain so that we can leverage the features extracted effectively. In computer vision, it’s mostly Imagenet, which has 1,000 classes and more than 1 million images. When training your network upon it, it’s bound to extract <a href="https://arxiv.org/abs/1311.2901">features</a> that are difficult to obtain otherwise. Initial layers usually capture small, fine details, and as we go deeper, ConvNets try to capture task-specific details; this makes ConvNets fantastic feature extractors.</p>
+
+<p>Normally we let ConvNet capture features by training it on a larger dataset and then modify. Fully connected layers in the end can do whatever we require for carrying out classification, and we can add a combination of linear layers. This makes it easy to transfer the knowledge of our network to carry out another task.</p>
+
+<h1 id="transfer-learning-in-natural-language-processing">
+<a class="anchor" href="#transfer-learning-in-natural-language-processing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Transfer Learning in Natural Language Processing</h1>
+
+<p>A recent paper, Universal LM for Text Classification,3 showed how to apply transfer learning to Natural Language Processing. This method has not been applied widely in this field. We can use pretrained models and not embeddings that have been trained on WikiText 103. Embeddings are word representations that allow words with similar meaning to have similar representation. If you visualize their embeddings, they would appear close to one another. It’s basically a fixed representation, so their scope is limited in some ways. But, creating a language model that has learned to capture semantic relationships within languages is bound to work better on newer datasets, as evidenced by results from the paper. So far, it has been tested on Language Modeling tasks and the results are impressive. This applies to Seq2Seq learning as well in instances where length of inputs and outputs is variable. This can be expanded further to many other tasks in NLP. Read more: <a href="http://nlp.fast.ai/">Introducing state of the art text classification with universal language models</a>.
+<img src="https://software.intel.com/sites/default/files/managed/9d/76/transfer-learning-to-introduce-generalization-in-models-fig2-sm.jpg" alt="lm_stages"></p>
+
+<h1 id="learning-without-forgetting">
+<a class="anchor" href="#learning-without-forgetting" aria-hidden="true"><span class="octicon octicon-link"></span></a>Learning without Forgetting</h1>
+
+<p>Another paper, <a href="https://arxiv.org/abs/1606.09282">Learning without Forgetting</a>, provides context for what’s been done earlier to make our network remember what it was trained on earlier, and how it can made to remember new data without forgetting earlier learning. The paper discussed the researchers’ methods compared with other prevalent, widely used methods such as transfer learning, joint training, feature extraction, and fine tuning. And, they tried to capture differences in how learning is carried out.</p>
+
+<p>For example, fine tuning is an effective way to extend the learning of neural networks. Using fine tuning, we usually train our model on a larger dataset – let’s say ResNet-50 trained on Imagenet trained on ImageNet. A pretrained ResNet5 has 25.6 Million parameters. <a href="https://arxiv.org/abs/1512.03385">ResNet</a> let you go deeper without incrementing the number of parameters over counterparts. The number of parameters is so great that you can expect to use the model to fit any other dataset in a very efficient manner: you simply load the model, remove the fully connected layers which are task specific, freeze the model, add linear layers as per your own needs, and train it on your own dataset. It’s that simple and very effective. The trained model has so many capabilities and reduced our workload by a huge factor; we recommend using fine tuning wherever you can.</p>
+
+<h2 id="what-weve-actually-been-doing-curve-fitting">
+<a class="anchor" href="#what-weve-actually-been-doing-curve-fitting" aria-hidden="true"><span class="octicon octicon-link"></span></a>What We’ve Actually Been Doing: Curve Fitting</h2>
+
+<p>Judea Pearl recently published a <a href="https://arxiv.org/abs/1801.04016">paper</a> in which he states that although we have gained a strong grasp of probability, we still can’t do cause-and-effect reasoning. Instead, basically what we’ve doing is curve fitting. So many different domains can be unlocked with do-calculus and causal modelling.
+<img src="/images/transfer_learning_gen/causal_hierarchy.png" alt="causal_hierarchy"></p>
+
+<p>Returning to where we were, we implemented learning without forgetting to measure how well the model does compared to other discussed methods in some computer vision tasks. They define three types of parameters: θs, θ o, and θn. θs are the shared set of parameters, while θ o is a parameter the model has trained on previous tasks (with a different dataset). Θn is a parameter the model will have when trained on another dataset.</p>
+
+<h1 id="how-to-perform-training">
+<a class="anchor" href="#how-to-perform-training" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to Perform Training</h1>
+
+<p>First, we used ResNet-50 (authors used 5 conv layers + 2 FC layers of AlexNet) instead of stated architecture with pretrained weights. The purpose behind pretrained weights is that our model will be used in domain adaptation and will see increased use of fine tuning. It’s necessary that the convolutional layers have extracted rich features that will help in many computer vision tasks, preferably on ImageNet, which has 26.5 million parameters. If you want to go deep, consider using other ResNet variants like ResNet-101. After that, our model must be trained using the architecture as prescribed in the paper: 
+<img src="https://software.intel.com/sites/default/files/managed/9d/76/transfer-learning-to-introduce-generalization-in-models-fig3.png" alt="lwf_arch"></p>
+
+<p>The model in between is ResNet-50 as per our implementation. We removed the last two layers and added two FC (fully connected) layers. We dealt with FC layers in a different manner appropriate to our task, but it can be modified for each use case. Add multiple FC layers depending on how many tasks you plan to perform.</p>
+
+<p>After creating the architecture, it’s necessary to freeze the second FC layer. This is done to ensure that the first FC layer can perform better on this task when the model is learned on another task with a significantly lower learning rate.</p>
+
+<p>This method solves a big challenge: after training, the older dataset is no longer required, whereas other methods of training do still require it.
+<img src="/images/transfer_learning_gen/lwf_features.png" alt="lwf_features"></p>
+
+<p>This is a big challenge: to make incremental learning more natural, dependence on older datasets must be removed. After training the model we are required to freeze the base architecture (in our case it implies ResNet-50) and the first FC layer with only the second FC layer turned on. We have to train the model with this arrangement.</p>
+
+<h2 id="the-rationale-for-this-training-approach">
+<a class="anchor" href="#the-rationale-for-this-training-approach" aria-hidden="true"><span class="octicon octicon-link"></span></a>The Rationale for this Training Approach</h2>
+<p>The base model (ResNet in our case) earlier had fine-tuned weights. Convolutional layers do an excellent job of feature extraction. As we fine-tune the base model, we are updating the weights as per the dataset we’re using. When we freeze the base model and train with another FC layer turned on, it implies that we have gone task specific, but we don’t want go much deeper into that task. By training the base model on a particular task and re-training it, the model will capture the weights required to perform well on the default dataset. If we want to perform domain adaptation, earlier and middle layers should be very good at feature extraction and bring generalization into context rather than making it task-specific.</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/ff/be/transfer-learning-to-introduce-generalization-in-models-fig4.png" alt="lwf_method"></p>
+
+<p>After performing the training, we must join train all the layers. This implies turning on both FC layers of the base model and training them to converge.</p>
+
+<p>Use any loss function your task requires. The authors used modified cross entropy (knowledge distillation loss), which proved to work well for encouraging the outputs of one network to approximate the outputs of another.</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/9d/76/transfer-learning-to-introduce-generalization-in-models-fig5.png" alt="loss_function"></p>
+
+<h1 id="observations">
+<a class="anchor" href="#observations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Observations</h1>
+
+<p>This method seems to work well when the number of tasks is kept to a minimum (in our case, two). It may outperform fine-tuning for new tasks because the base model is not being retrained repeatedly, only the FC layers. Performance is similar to joint training when new tasks are being added. But, this method is bound to work poorly on older tasks as new tasks are added.</p>
+
+<p>This is because same convolutional layers are being used when we are freezing them, which means they are using the same feature extractor. We don’t expect them to outperform on all above-mentioned training tasks just by dealing with FC layers.
+<img src="https://software.intel.com/sites/default/files/managed/9d/76/transfer-learning-to-introduce-generalization-in-models-fig6.png" alt="task_specific_diagram"></p>
+
+<p>You can add more task-specific layers to introduce more generalization. But, as you go deep, you will make the model task-specific. This method addresses the problem of adapting to different domains of computer vision without relying on older datasets that were used in earlier training. It can be regarded as a hybrid of knowledge distillation and fine-tuning training methods.</p>
+
+<p>This is an incremental step toward bringing generalization to neural networks, but we still lack ways to achieve full generalization, wherein we can expect to make our networks learn just like we do. We still have a long way to go, but research is in progress.</p>
+
+  </div><a class="u-url" href="/blog/transfer-learning/nlp/deep-learning/2018/06/25/transfer_learning_gen.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>AI Research</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/prajjwal1" title="prajjwal1"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/prajjwal_1" title="prajjwal_1"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

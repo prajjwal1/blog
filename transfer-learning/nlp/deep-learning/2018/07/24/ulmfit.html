@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Transfer Learning in Natural Language Processing | Prajjwal’s blog</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="Transfer Learning in Natural Language Processing" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Applying transfer learning on language models" />
+<meta property="og:description" content="Applying transfer learning on language models" />
+<link rel="canonical" href="https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/07/24/ulmfit.html" />
+<meta property="og:url" content="https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/07/24/ulmfit.html" />
+<meta property="og:site_name" content="Prajjwal’s blog" />
+<meta property="og:image" content="https://prajjwal1.github.io/blog/images/ulmfit/cover.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-07-24T00:00:00-05:00" />
+<script type="application/ld+json">
+{"datePublished":"2018-07-24T00:00:00-05:00","headline":"Transfer Learning in Natural Language Processing","image":"https://prajjwal1.github.io/blog/images/ulmfit/cover.jpg","description":"Applying transfer learning on language models","mainEntityOfPage":{"@type":"WebPage","@id":"https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/07/24/ulmfit.html"},"@type":"BlogPosting","url":"https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/07/24/ulmfit.html","dateModified":"2018-07-24T00:00:00-05:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://prajjwal1.github.io/blog/feed.xml" title="Prajjwal's blog" /><link rel="shortcut icon" type="image/x-icon" href="/blog/images/favicon.ico"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Transfer Learning in Natural Language Processing | Prajjwal’s blog</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="Transfer Learning in Natural Language Processing" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Applying transfer learning on language models" />
+<meta property="og:description" content="Applying transfer learning on language models" />
+<link rel="canonical" href="https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/07/24/ulmfit.html" />
+<meta property="og:url" content="https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/07/24/ulmfit.html" />
+<meta property="og:site_name" content="Prajjwal’s blog" />
+<meta property="og:image" content="https://prajjwal1.github.io/blog/images/ulmfit/cover.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-07-24T00:00:00-05:00" />
+<script type="application/ld+json">
+{"datePublished":"2018-07-24T00:00:00-05:00","headline":"Transfer Learning in Natural Language Processing","image":"https://prajjwal1.github.io/blog/images/ulmfit/cover.jpg","description":"Applying transfer learning on language models","mainEntityOfPage":{"@type":"WebPage","@id":"https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/07/24/ulmfit.html"},"@type":"BlogPosting","url":"https://prajjwal1.github.io/blog/transfer-learning/nlp/deep-learning/2018/07/24/ulmfit.html","dateModified":"2018-07-24T00:00:00-05:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+<link href="https://unpkg.com/@primer/css/dist/primer.css" rel="stylesheet" />
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css"><link type="application/atom+xml" rel="alternate" href="https://prajjwal1.github.io/blog/feed.xml" title="Prajjwal's blog" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css" integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous">
+    <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML"> </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js" integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head><body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/blog/">Prajjwal&#39;s blog</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/blog/about/">About Me</a><a class="page-link" href="/blog/search/">Search</a><a class="page-link" href="/blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Transfer Learning in Natural Language Processing</h1><p class="page-description">Applying transfer learning on language models</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2018-07-24T00:00:00-05:00" itemprop="datePublished">
+        Jul 24, 2018
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      14 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/blog/categories/#transfer-learning">transfer-learning</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blog/categories/#nlp">nlp</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blog/categories/#deep-learning">deep-learning</a>
+        
+      
+      </p>
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h1"><a href="#universal-language-modeling">Universal Language Modeling</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#limitations-of-embeddings">Limitations of Embeddings</a></li>
+<li class="toc-entry toc-h2"><a href="#words-that-occur-rarely-in-vocabulary">Words that Occur Rarely in Vocabulary</a></li>
+<li class="toc-entry toc-h2"><a href="#dealing-with-shared-representations">Dealing with Shared Representations</a></li>
+<li class="toc-entry toc-h2"><a href="#co-occurrence-statistics">Co-Occurrence Statistics</a></li>
+<li class="toc-entry toc-h2"><a href="#support-for-new-languages">Support for New Languages</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h1"><a href="#averaged-stochastic-gradient-method-asgd-weight-dropped-long-short-term-memory-networks-awd-lstm">Averaged Stochastic Gradient Method (ASGD) Weight Dropped Long Short Term Memory Networks (AWD-LSTM)</a></li>
+<li class="toc-entry toc-h1"><a href="#ulmfit">ULMFit</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#slanted-triangular-learning-rate-stlr">Slanted Triangular Learning Rate (STLR)</a></li>
+<li class="toc-entry toc-h2"><a href="#problems-being-solved-by-ulmfit">Problems Being Solved by ULMfit</a></li>
+<li class="toc-entry toc-h2"><a href="#discriminative-fine-tuning">Discriminative Fine-Tuning</a></li>
+<li class="toc-entry toc-h2"><a href="#classifier-fine-tuning-for-task-specific-weights">Classifier Fine-Tuning for Task Specific Weights</a></li>
+<li class="toc-entry toc-h2"><a href="#concat-pooling">Concat Pooling</a></li>
+<li class="toc-entry toc-h2"><a href="#training-the-classifier-gradual-unfreezing">Training the Classifier (Gradual Unfreezing)</a></li>
+<li class="toc-entry toc-h2"><a href="#backpropagation-through-time-bptt-for-text-classification">Backpropagation through Time (BPTT) for Text Classification</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h1"><a href="#results">Results</a></li>
+</ul><p>The following article first appeared on <a href="https://software.intel.com/en-us/articles/transfer-learning-in-natural-language-processing">Intel Developer Zone</a>.</p>
+
+<h1 id="universal-language-modeling">
+<a class="anchor" href="#universal-language-modeling" aria-hidden="true"><span class="octicon octicon-link"></span></a>Universal Language Modeling</h1>
+<p>People have been using transfer learning in computer vision (CV) for a considerable time now, and it has produced remarkable results in these few years. In some tasks, we have been able to surpass human level accuracy as well. These days, implementations that don’t use pretrained weights to produce state-of-the-art results are rare. In fact, when people do produce them, it’s often understood that transfer learning or some sort of fine-tuning is being used. Transfer learning has had a huge impact in the field of computer vision and has contributed progressively in advancement of this field.</p>
+
+<p>Transfer Learning was kind of limited to computer vision up till now, but recent research work shows that the impact can be extended almost everywhere, including natural language processing (NLP), reinforcement learning (RL). Recently, a few papers have been published that show that transfer learning and fine-tuning work in NLP as well and the results are great.</p>
+
+<p>Recently OpenAI also had a <a href="https://blog.openai.com/retro-contest/">retro contest</a> in which participants were challenged to create agents that can play games without having access to the environment which was used to train it using transfer learning. It’s now possible to explore the potential of this method.</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/95/b1/transfer-learning-in-natural-language-processing-figure-1.png" alt="openai_retro">
+<em>Leveraging past experiences to learn new things (new environments in the context of RL)</em></p>
+
+<p>Previous research involved incremental learning in computer vision, bringing generalization into models since it’s one of the most important components in making learning in neural networks robust. One paper that aims to build on this is <a href="https://arxiv.org/abs/1801.06146">Universal Language Model Fine-tuning for Text Classification</a>.</p>
+
+<p>Text classification is an important component in NLP concerned with real-life scenarios such as bots, assistants, fraud or spam detection, document classification, and more. It can almost be extended to pretty much any task since we’re dealing with Language Models. This author has worked with text classification, and until now much of the academic research still relies on embeddings to train models like word2vec and GloVe.</p>
+
+<h2 id="limitations-of-embeddings">
+<a class="anchor" href="#limitations-of-embeddings" aria-hidden="true"><span class="octicon octicon-link"></span></a>Limitations of Embeddings</h2>
+
+<p>Word embeddings are dense representation of words. Embedding is done by using real-valued numbers that have been converted into tensors, which are fed into the model. A particular sequence needs to be maintained (stateful) in this model so that the model learns syntactic and semantic relationships amongst words and context.</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/95/b1/transfer-learning-in-natural-language-processing-figure-2.jpg" alt="embed_limitations">
+<em>Visualization of different types of data</em></p>
+
+<p>When visualized, words with closer semantic meaning would have their embeddings closer to each other, enabling each word to have varied vector representation.</p>
+
+<h2 id="words-that-occur-rarely-in-vocabulary">
+<a class="anchor" href="#words-that-occur-rarely-in-vocabulary" aria-hidden="true"><span class="octicon octicon-link"></span></a>Words that Occur Rarely in Vocabulary</h2>
+
+<p>When dealing with datasets, we usually come across words which aren’t there in the vocabulary since we have a limitation on how many words we can have in memory.</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/95/b1/transfer-learning-in-natural-language-processing-figure-3.png" alt="tokenization">
+*Tokenization; These words exist in vocabulary and are common words but with embeddings token like <unk> cannot be dealt with effectively.*</unk></p>
+
+<p>For any word that appears only a handful of times, this model is going to have a hard time figuring out semantics of that particular word, so a vocabulary is created to address this issue. Word2vec cannot handle unknown words properly. When a word is not known, its vector cannot be deterministically constructed, so it must be randomly initialized. Commonly faced problems with embeddings are:</p>
+
+<h2 id="dealing-with-shared-representations">
+<a class="anchor" href="#dealing-with-shared-representations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dealing with Shared Representations</h2>
+
+<p>Another area where this representation falls short is that there is no shared representation among subwords. Prefixes and suffixes in English often add a common meaning to all of them (like -er in “better” and “faster”). Since each vector is independent, the semantic relationships among words cannot be fully realized.</p>
+
+<h2 id="co-occurrence-statistics">
+<a class="anchor" href="#co-occurrence-statistics" aria-hidden="true"><span class="octicon octicon-link"></span></a>Co-Occurrence Statistics</h2>
+
+<p>Distributional word-vector models capture some aspects of co-occurrence statistics of the words in a language. Embeddings which are trained on word co-occurrence counts can be expected to capture semantic word similarity, and hence can be evaluated based on word-similarity tasks.</p>
+
+<p>If a particular language model takes char-based input that cannot benefit from pretraining, randomized embeddings would be required.</p>
+
+<h2 id="support-for-new-languages">
+<a class="anchor" href="#support-for-new-languages" aria-hidden="true"><span class="octicon octicon-link"></span></a>Support for New Languages</h2>
+
+<p>Making use of embeddings will not make this model robust when confronted with other languages. With new languages, new embedding matrices would be required that cannot benefit from parameter sharing, so model cannot be used to perform cross-lingual tasks.</p>
+
+<p>Embeddings can be concatenated, but training for this model must still be given from scratch; pretrained embeddings are treated as fixed parameters. Such models are not useful in incremental learning.</p>
+
+<p>As computer vision has already shown, hypercolumns are not useful as compared to other prevalent training methods. In CV, hypercolumn of a pixel are vectors of activations of all ConvNet units above that pixel.</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/95/b1/transfer-learning-in-natural-language-processing-figure-4.jpg" alt="hyper_columns">
+<em>Figure 4. Hypercolumns in ConvNets(<a href="https://arxiv.org/pdf/1411.5752v2">Source</a>)</em></p>
+
+<h1 id="averaged-stochastic-gradient-method-asgd-weight-dropped-long-short-term-memory-networks-awd-lstm">
+<a class="anchor" href="#averaged-stochastic-gradient-method-asgd-weight-dropped-long-short-term-memory-networks-awd-lstm" aria-hidden="true"><span class="octicon octicon-link"></span></a>Averaged Stochastic Gradient Method (ASGD) Weight Dropped Long Short Term Memory Networks (AWD-LSTM)</h1>
+
+<p>The model used in this research is heavily inspired from this article: <a href="https://arxiv.org/pdf/1708.02182.pdf">Regularizing and Optimizing LSTM Language Models</a>. It makes use of the weight-dropped LSTM that uses DropConnect on hidden-to-hidden weights as form of recurrent regularization. DropConnect is a generalization of Hinton’s <a href="http://www.cs.toronto.edu/~hinton/absps/dropout.pdf">Dropout</a> for regularizing large fully connected layers within neural networks.</p>
+
+<p>When training with Dropout, a randomly selected subset of activations is set to zero within each layer. DropConnect sets a randomly selected subset of weights within the network to zero. Each unit thus receives input from a random subset of units in the previous layer.</p>
+
+<p><img src="/images/ulmfit/dropout_dropconnect.png" alt="">
+<em>Differences between DropConnect and Dropout</em></p>
+
+<p>By making use of DropConnect on the hidden-to-hidden weight matrices—namely [Ui , Uf , Uo , Uc ] —within the LSTM, overfitting can be prevented on the recurrent connections of the LSTM. This regularization technique would also help prevent overfitting on the recurrent weight matrices of other Recurrent Neural Network cells.</p>
+
+<p>Commonly used set of values:
+<code class="highlighter-rouge">dropouts = np.array([0.4,0.5,0.05,0.3,0.1]) x 0.5</code>
+The 0.5 multiplier is a hyperparameter, although the ratio inside the array is well balanced, so a 0.5 adjustment may be needed.</p>
+
+<p>As the same weights are reused over multiple timesteps, the same individual dropped weights remain dropped for the entirety of the forward and backward pass. The result is similar to variational dropout, which applies the same dropout mask to recurrent connections within the LSTM except that the dropout is applied to the recurrent weights. DropConnect could also be used on the nonrecurrent weights of the LSTM [Wi , Wf , Wo ].</p>
+
+<h1 id="ulmfit">
+<a class="anchor" href="#ulmfit" aria-hidden="true"><span class="octicon octicon-link"></span></a>ULMFit</h1>
+
+<p>A three-layer LSTM (AWD-LSTM) architecture with tuned dropout parameters outperformed other text-classification tasks trained using other training methods. Three techniques have been used to prevent over-catastrophic forgetting when fine-tuning is performed since the original pretrained model was trained on <a href="https://einstein.ai/research/the-wikitext-long-term-dependency-language-modeling-dataset">wiki-text103</a> and the dataset we will be dealing with is <a href="http://ai.stanford.edu/~amaas/data/sentiment/">IMDb</a> movie review.</p>
+
+<h2 id="slanted-triangular-learning-rate-stlr">
+<a class="anchor" href="#slanted-triangular-learning-rate-stlr" aria-hidden="true"><span class="octicon octicon-link"></span></a>Slanted Triangular Learning Rate (STLR)</h2>
+
+<p>My earlier experience involved using the Adam optimization algorithm with weight decay. But adaptive optimizers have limitations. If this model gets stuck in a saddle point and the gradients being generated are small, then the model has a hard time generating enough gradient to get out of a nonconvex region.</p>
+
+<p>Cyclical learning rate, as proposed by Leslie Smith, addresses the issue. After using cyclical learning rate (CLR), 10% increment was seen in accuracy (CMC) in my work. For more, see this paper: <a href="https://arxiv.org/abs/1506.01186">Cyclical Learning Rates for Training Neural Networks</a>.</p>
+
+<p>The learning rate determines how much of the loss gradient is to be applied to the current weights to move them in the direction of loss. This method is similar to <a href="https://arxiv.org/abs/1608.03983">stochastic gradient with warm restarts</a>. Stochastic Gradient Descent with Restarts (SGDR) was used as the annealing schedule.
+<img src="https://software.intel.com/sites/default/files/managed/95/b1/transfer-learning-in-natural-language-processing-figure-6.png" alt="CLR"></p>
+
+<p>In a nutshell, choosing the starting learning rate and learning-rate scheduler can be difficult because it’s not always evident which will work better.</p>
+
+<p>Adaptive learning rates are available for each parameter. Optimizers like Adam, Adagrad, and RMSprop adapt to the learning rates for each parameter being trained.</p>
+
+<p>The paper <a href="https://arxiv.org/pdf/1506.01186.pdf">Cyclical Learning Rates for Training Neural Networks</a> resolves many commonly faced issues in an elegant, simplified manner.</p>
+
+<p>Cyclical Learning Rate (CLR) creates an upper and lower bound for value for learning rate. It can be coupled with adaptive learning methods but is similar to SGDR and is less computationally expensive.</p>
+
+<p>If stuck in a saddle point, a higher learning rate can get the model out, but if it’s low as convention says (in later stages we are required to reduce learning rate), then traditional learning-rate-scheduler methods would never generate enough gradient if it gets stuck in elaborate plateau (non convex).</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/95/b1/transfer-learning-in-natural-language-processing-figure-7.png" alt="non_convex">
+<em>Non convex function</em></p>
+
+<p>A periodic higher learning rate will have smoother and faster traversal over the surface.</p>
+
+<p>The optimal learning rate (LR) would lie in between the maximum and minimum bounds.</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/95/b1/transfer-learning-in-natural-language-processing-figure-8.png" alt="bounds_clr">
+<em>Bounds being created by Cyclical Learning Rate</em></p>
+
+<p>Varying the LR in such a manner guarantees that this issue is resolved if needed.</p>
+
+<p>So with transfer learning, the task is to improve performance on Task B given a model trained for static Task A. A language model has all the capabilities that a classification model in CV would have in the context of NLP: it knows the language, understands hierarchical relationships, has control over long-term dependencies, and can perform sentiment analysis.</p>
+
+<p>Universal Language Model Fine-tuning for Text Classification (ULMfit) has three stages, just like computer vision.</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/95/b1/transfer-learning-in-natural-language-processing-figure-9.png" alt="ulmfit_stages">
+<em>Three stages of ULMFit</em></p>
+
+<p>In first stage, LM pretraining (a), the language model is trained on a general dataset from which it learns general features of what language is and gathers knowledge of semantic relationships among words. Like ImageNet, this model uses wikitext103 (103 M tokens).</p>
+
+<p>In second stage, LM fine-tuning (b), fine-tuning is required to the backbone (base model) using discriminative fine-tuning and using slanted triangular learning rates (STLRs) to make the model learn task-specific features.</p>
+
+<p>In third stage, classifier fine-tuning (c), modifications are made to the classifier to fine-tune on a target task using gradual unfreezing and STLR to preserve low-level representations and adapt to high-level ones.</p>
+
+<p>In a nutshell, ULMfit can be considered as a backbone and a classifier added over the top (head). It makes use of a pretrained model that has been trained on a general domain corpus. (Usually datasets that researchers deal with must be reviewed so as not to have many domain gaps.) Fine-tuning can be done later on a target task using mentioned techniques to produce State of the Art performance in text classification.</p>
+
+<h2 id="problems-being-solved-by-ulmfit">
+<a class="anchor" href="#problems-being-solved-by-ulmfit" aria-hidden="true"><span class="octicon octicon-link"></span></a>Problems Being Solved by ULMfit</h2>
+<p>This method can be called universal because it is not dataset-specific. It can work across documents and datasets of various lengths. It uses a single architecture (in this case AWD-LSTM, just like ResNets in CV). No custom features must be engineered to make it compatible with other tasks. It doesn’t require any additional documents to make it work across certain domains.</p>
+
+<p>This model can further be improved with using attention and adding skip connections wherever necessary.</p>
+
+<h2 id="discriminative-fine-tuning">
+<a class="anchor" href="#discriminative-fine-tuning" aria-hidden="true"><span class="octicon octicon-link"></span></a>Discriminative Fine-Tuning</h2>
+<p>Each neural-net layer captures different information. In CV, initial layers capture broad, distinctive, wide features. With depth, they try to capture task-specific, complex features. Using the same principle, this method proposes to fine-tune different layers of this language model differently. To do that, different learning rates must be used for each layer. That way people can decide how the parameters in each layer are being updated.</p>
+
+<p>The parameters theta were split into a list and that would parameters of l-th layer <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>θ</mi><mn>1</mn></msup><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><msup><mi>θ</mi><mi>l</mi></msup></mrow><annotation encoding="application/x-tex">{\theta^{1} ..... \theta^{l}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.849108em;vertical-align:0em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.849108em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span></span></span></span></span></span></span></span></span></span></span></span></span>, and similarly the same operation can be done with learning rate as well <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>η</mi><mn>1</mn></msup><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><msup><mi>η</mi><mi>l</mi></msup></mrow><annotation encoding="application/x-tex">{\eta^{1} ..... \eta^{l}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.043548em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">η</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">η</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.849108em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span></span></span></span></span></span></span></span></span></span></span></span></span>. The stochastic gradient descent can then be run with discriminative fine-tuning:
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mi>t</mi></msub><mo>∗</mo><mi>l</mi><mo>=</mo><msub><mi>θ</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>∗</mo><mi>l</mi><mo>−</mo><msup><mi>η</mi><mi>l</mi></msup><mi mathvariant="normal">.</mi><msub><mi mathvariant="normal">Δ</mi><msup><mi>θ</mi><mi>t</mi></msup></msub><mi>J</mi><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\theta_{t}*{l} = \theta_{t-1}*{l}-\eta^{l}.\Delta_{\theta^{t}}J(\theta)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.01968em;">l</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.902771em;vertical-align:-0.208331em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.01968em;">l</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.099108em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">η</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.849108em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span></span></span></span></span></span></span></span></span><span class="mord">.</span><span class="mord"><span class="mord">Δ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5370600000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7253428571428571em;"><span style="top:-2.786em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span></span></span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.16293999999999997em;"><span></span></span></span></span></span></span><span class="mord mathdefault" style="margin-right:0.09618em;">J</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span><span class="mclose">)</span></span></span></span></p>
+
+<h2 id="classifier-fine-tuning-for-task-specific-weights">
+<a class="anchor" href="#classifier-fine-tuning-for-task-specific-weights" aria-hidden="true"><span class="octicon octicon-link"></span></a>Classifier Fine-Tuning for Task Specific Weights</h2>
+
+<p>Two additional linear blocks have been added. Each block uses batch normalization and a lower value of dropout. (Batch normalization causes a regularizing effect.) In between blocks, a rectified linear unit (ReLU) is used as activation function, and then logits are being passed on to softmax that outputs a probability distribution over target classes. These classifier layers do not inherit anything from pre-training; they are trained from scratch. Before the blocks, pooling has been used for last hidden layers and that is being fed to first linear layer.</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>trn_ds = TextDataset(trn_clas, trn_labels)
+val_ds = TextDataset(val_clas, val_labels)
+trn_samp = SortishSampler(trn_clas, key=lambda x: len(trn_clas[x]), bs=bs//2)
+val_samp = SortSampler(val_clas, key=lambda x: len(val_clas[x]))
+trn_dl = DataLoader(trn_ds, bs//2, transpose=True, num_workers=1, pad_idx=1, sampler=trn_samp)
+val_dl = DataLoader(val_ds, bs, transpose=True, num_workers=1, pad_idx=1, sampler=val_samp)
+md = ModelData(PATH, trn_dl, val_dl)
+dropouts = np.array([0.4,0.5,0.05,0.3,0.4])*0.5
+m = get_rnn_classifer(bptt, 20*70, c, vs, emb_sz=em_sz, n_hid=nh, n_layers=nl, pad_token=1,
+          layers=[em_sz*3, 50, c], drop=[dropouts[4], 0.1],
+          dropouti=dropouts[0], wdrop=dropouts[1], dropoute=dropouts[2], dropouth=dropouts[3])
+</code></pre></div></div>
+<p><em>PyTorch</em> with FastAI API (Classifier Training)*</p>
+
+<h2 id="concat-pooling">
+<a class="anchor" href="#concat-pooling" aria-hidden="true"><span class="octicon octicon-link"></span></a>Concat Pooling</h2>
+<p>Often it’s important to take care of the state of the recurrent model and to keep useful states and release those which aren’t useful since there are limited states in memory to make updates with update gate. But the last hidden state generated from the LSTM model contains a lot of information, and those weights must be saved from the hidden state. To do that, we concatenate the hidden state of the last time step with the max and mean pooled representation of the hidden states over many timesteps as long as it can conveniently fit on GPU memory.
+<img src="https://software.intel.com/sites/default/files/managed/0b/f2/transfer-learning-in-natural-language-processing-equation-4.png" alt=""></p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>trn_dl = DataLoader(trn_ds, bs//2, transpose=True, num_workers=1, pad_idx=1, sampler=trn_samp)
+val_dl = DataLoader(val_ds, bs, transpose=True, num_workers=1, pad_idx=1, sampler=val_samp)
+md = ModelData(PATH, trn_dl, val_dl)
+</code></pre></div></div>
+<h2 id="training-the-classifier-gradual-unfreezing">
+<a class="anchor" href="#training-the-classifier-gradual-unfreezing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Training the Classifier (Gradual Unfreezing)</h2>
+<p>Fine-tuning the classifier straightway leads to overcatastrophic forgetting. Fine-tuning it slowly leads to overfitting and convergence. It’s recommended not to fine-tune the layers all at once but rather to fine-tune one at a time (freezing some layers in one go). Since last layer possesses general domain knowledge. The last layer is unfrozen afterwards, and then we can fine-tune previously frozen layers in one iteration. The next lower frozen layer is unfrozen, and the process is repeated until all layers are fine-tuned and convergence is noted.</p>
+
+<h2 id="backpropagation-through-time-bptt-for-text-classification">
+<a class="anchor" href="#backpropagation-through-time-bptt-for-text-classification" aria-hidden="true"><span class="octicon octicon-link"></span></a>Backpropagation through Time (BPTT) for Text Classification</h2>
+<p>Backpropagation through time (BPTT) is often used in RNNs to sequence data. BPTT works by unrolling all time steps. Each time step contains one input, one copy of the network, and one output. Errors generated by the network are calculated and accumulated at each time step. The network is rolled back up and weights are updated by gradient descent.</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/95/b1/transfer-learning-in-natural-language-processing-figure-10.png" alt="">
+This model is initialized with the final state of the previous batch. Hidden states for mean and max pooling are also tracked. At the core, backpropagation uses variable-length sequences. Here is a snippet of Sampler being used in PyTorch:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class SortishSampler(Sampler):
+    def __init__(self, data_source, key, bs):
+        self.data_source,self.key,self.bs = data_source,key,bs
+    def __len__(self): return len(self.data_source)
+    def __iter__(self):
+        idxs = np.random.permutation(len(self.data_source))
+        sz = self.bs*50
+        ck_idx = [idxs[i:i+sz] for i in range(0, len(idxs), sz)]
+        sort_idx = np.concatenate([sorted(s, key=self.key, reverse=True) for s in ck_idx])
+        sz = self.bs
+        ck_idx = [sort_idx[i:i+sz] for i in range(0, len(sort_idx), sz)]
+        max_ck = np.argmax([self.key(ck[0]) for ck in ck_idx])  # find the chunk with the largest key,
+        ck_idx[0],ck_idx[max_ck] = ck_idx[max_ck],ck_idx[0]     # then make sure it goes first.
+        sort_idx = np.concatenate(np.random.permutation(ck_idx[1:]))
+        sort_idx = np.concatenate((ck_idx[0], sort_idx))
+        return iter(sort_idx)
+</code></pre></div></div>
+<p>So the Sampler returns an iterator (a simple object that can be iterated upon). It traverses the data in randomly ordered batches that are approximately of the same size. In the first call, the largest possible sequence is used, allowing proper memory-allocation sequencing.</p>
+
+<h1 id="results">
+<a class="anchor" href="#results" aria-hidden="true"><span class="octicon octicon-link"></span></a>Results</h1>
+
+<p>This method works phenomenally better than any other methods that relied on embeddings or some form of transfer learning in NLP research. After gradually unfreezing and training the classifier with novel methods (as discussed), it was easy to achieve an accuracy of 94.4 in just four epochs, beating other state of the art accuracies up to date.</p>
+
+<p><img src="/images/ulmfit/ulmfit_results.png" alt="">
+Table 1. Loss and accuracies on Text Classification with ULMFit</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/95/b1/transfer-learning-in-natural-language-processing-figure-11.png" alt=""></p>
+
+  </div><a class="u-url" href="/blog/transfer-learning/nlp/deep-learning/2018/07/24/ulmfit.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>AI Research</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/prajjwal1" title="prajjwal1"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/prajjwal_1" title="prajjwal_1"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

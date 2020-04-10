@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Better Generative Modelling through Wasserstein GANs | Prajjwal’s blog</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="Better Generative Modelling through Wasserstein GANs" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="How Wasserstein GANs helped in improving GAN training" />
+<meta property="og:description" content="How Wasserstein GANs helped in improving GAN training" />
+<link rel="canonical" href="https://prajjwal1.github.io/blog/gan/deep-learning/computer-vision/2018/03/26/wgan.html" />
+<meta property="og:url" content="https://prajjwal1.github.io/blog/gan/deep-learning/computer-vision/2018/03/26/wgan.html" />
+<meta property="og:site_name" content="Prajjwal’s blog" />
+<meta property="og:image" content="https://prajjwal1.github.io/blog/images/wgan/celeba.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-03-26T00:00:00-05:00" />
+<script type="application/ld+json">
+{"datePublished":"2018-03-26T00:00:00-05:00","headline":"Better Generative Modelling through Wasserstein GANs","image":"https://prajjwal1.github.io/blog/images/wgan/celeba.jpg","description":"How Wasserstein GANs helped in improving GAN training","mainEntityOfPage":{"@type":"WebPage","@id":"https://prajjwal1.github.io/blog/gan/deep-learning/computer-vision/2018/03/26/wgan.html"},"@type":"BlogPosting","url":"https://prajjwal1.github.io/blog/gan/deep-learning/computer-vision/2018/03/26/wgan.html","dateModified":"2018-03-26T00:00:00-05:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://prajjwal1.github.io/blog/feed.xml" title="Prajjwal's blog" /><link rel="shortcut icon" type="image/x-icon" href="/blog/images/favicon.ico"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Better Generative Modelling through Wasserstein GANs | Prajjwal’s blog</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="Better Generative Modelling through Wasserstein GANs" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="How Wasserstein GANs helped in improving GAN training" />
+<meta property="og:description" content="How Wasserstein GANs helped in improving GAN training" />
+<link rel="canonical" href="https://prajjwal1.github.io/blog/gan/deep-learning/computer-vision/2018/03/26/wgan.html" />
+<meta property="og:url" content="https://prajjwal1.github.io/blog/gan/deep-learning/computer-vision/2018/03/26/wgan.html" />
+<meta property="og:site_name" content="Prajjwal’s blog" />
+<meta property="og:image" content="https://prajjwal1.github.io/blog/images/wgan/celeba.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-03-26T00:00:00-05:00" />
+<script type="application/ld+json">
+{"datePublished":"2018-03-26T00:00:00-05:00","headline":"Better Generative Modelling through Wasserstein GANs","image":"https://prajjwal1.github.io/blog/images/wgan/celeba.jpg","description":"How Wasserstein GANs helped in improving GAN training","mainEntityOfPage":{"@type":"WebPage","@id":"https://prajjwal1.github.io/blog/gan/deep-learning/computer-vision/2018/03/26/wgan.html"},"@type":"BlogPosting","url":"https://prajjwal1.github.io/blog/gan/deep-learning/computer-vision/2018/03/26/wgan.html","dateModified":"2018-03-26T00:00:00-05:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+<link href="https://unpkg.com/@primer/css/dist/primer.css" rel="stylesheet" />
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css"><link type="application/atom+xml" rel="alternate" href="https://prajjwal1.github.io/blog/feed.xml" title="Prajjwal's blog" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css" integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous">
+    <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML"> </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js" integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head><body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/blog/">Prajjwal&#39;s blog</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/blog/about/">About Me</a><a class="page-link" href="/blog/search/">Search</a><a class="page-link" href="/blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Better Generative Modelling through Wasserstein GANs</h1><p class="page-description">How Wasserstein GANs helped in improving GAN training</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2018-03-26T00:00:00-05:00" itemprop="datePublished">
+        Mar 26, 2018
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      8 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/blog/categories/#gan">gan</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blog/categories/#deep-learning">deep-learning</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blog/categories/#computer-vision">computer-vision</a>
+        
+      
+      </p>
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h1"><a href="#overview">Overview</a></li>
+<li class="toc-entry toc-h1"><a href="#introduction">Introduction</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#what-is-earth-movers-distance">What is Earth Mover’s Distance?</a></li>
+<li class="toc-entry toc-h2"><a href="#kullbackleibler-and-jensenshannon-divergence">Kullback–Leibler and Jensen–Shannon Divergence</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h1"><a href="#generative-adversarial-network-gan">Generative Adversarial Network (GAN)</a></li>
+<li class="toc-entry toc-h1"><a href="#use-wasserstein-distance-as-gan-loss-function">Use Wasserstein Distance as GAN Loss Function</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#improved-gan-training">Improved GAN Training</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h1"><a href="#overview-of-dcgan">Overview of DCGAN</a></li>
+<li class="toc-entry toc-h1"><a href="#problem-with-gans">Problem with GANs</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#evaluation-metric">Evaluation Metric</a></li>
+</ul>
+</li>
+</ul><p>The following article first appeared on <a href="https://software.intel.com/en-us/articles/better-generative-modelling-through-wasserstein-gans">Intel Developer Zone</a>.</p>
+
+<h1 id="overview">
+<a class="anchor" href="#overview" aria-hidden="true"><span class="octicon octicon-link"></span></a>Overview</h1>
+
+<p>The year 2017 was a period of scientific breakthroughs in deep learning, with the publication of numerous research papers. Every year seems like a big leap toward artificial general intelligence, or AGI.</p>
+
+<p>One exciting development involves generative modelling and the use of Wasserstein GANs (Generative Adversarial Networks). An influential paper on the topic has completely changed the approach to generative modelling, moving beyond the time when Ian Goodfellow published the original GAN paper.</p>
+
+<p>Why Wasserstein GANs are such a big deal:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>With Wasserstein GAN, you can train the discriminator to convergence. If true, it would totally remove the need to balance generator updates with discriminator updates, as earlier the updates of generator and discriminator were happening with no correlation to each other.
+The initial paper (Soumith et al.) proposed a new GAN training algorithm that works well on the commonly used GAN datasets.
+Usually theory justified papers don't provide good empirical results, but the training algorithm mentioned in the paper is backed up by theory and it explains why WGANs work so much better.
+</code></pre></div></div>
+
+<h1 id="introduction">
+<a class="anchor" href="#introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introduction</h1>
+
+<p>This paper differs from earlier work: the training algorithm is backed up by theory, and few examples exist where theory-justified papers gave good empirical results. The big thing about WGANs is that developers can train their discriminator to convergence, which was not possible earlier. Doing this eliminates the need to balance generator updates with discriminator updates.</p>
+
+<h2 id="what-is-earth-movers-distance">
+<a class="anchor" href="#what-is-earth-movers-distance" aria-hidden="true"><span class="octicon octicon-link"></span></a>What is Earth Mover’s Distance?</h2>
+
+<p>When dealing with discrete probability distributions, the Wasserstein Distance is also known as Earth mover’s distance (EMD). Imagining different heaps of earth in varying quantities, EMD would be the minimal total amount of work it takes to transform one heap into another. Here, work is defined as the product of the amount of earth being moved and the distance it covers. Two discrete probability distributions are usually defined as Pr and P(theta).</p>
+
+<p>Pr comes from unknown distribution, and the goal is to learn P(theta) that approximates Pr.</p>
+
+<p>Calculation of EMD is an optimization process with infinite solution approaches; the challenge is to find the optimal one.
+<img src="https://software.intel.com/sites/default/files/managed/48/59/better-generative-modelling-through-wasserstein-GANs-fig01.png" alt="emd"></p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>One approach would be to directly learn probability density function P(theta). This would mean that P(theta) is some differentiable function that can be optimized by maximum likelihood estimation. To do that, minimize the KL (Kullback–Leibler) divergence KL(Pr</td>
+      <td> </td>
+      <td>(P(theta)) and add a random noise to P(theta) when training the model for maximum likelihood estimation. This ensures that distribution is defined elsewhere; otherwise, if a single point lies outside P(theta), the KL divergence can explode.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Adversarial training makes it hard to see whether models are training. It has been shown that GANs are related to actor-critic methods in reinforcement learning. <a href="https://arxiv.org/abs/1610.01945">Learn More</a>.</p>
+
+<h2 id="kullbackleibler-and-jensenshannon-divergence">
+<a class="anchor" href="#kullbackleibler-and-jensenshannon-divergence" aria-hidden="true"><span class="octicon octicon-link"></span></a>Kullback–Leibler and Jensen–Shannon Divergence</h2>
+
+<ol>
+  <li>KL (Kullback–Leibler) divergence measures how one probability distribution P diverges from a second expected probability distribution Q
+<img src="https://software.intel.com/sites/default/files/managed/26/a6/better-generative-modelling-through-wasserstein-GANs-fig02.png" alt="kl">
+We drop −H(p) going from (18) − (19) because it is a constant. We can see if we minimize the LHS (Left-hand side), we are maximizing the expectation of log q(x) over the distribution p. Therefore, minimizing the LHS is maximizing the RHS, which is maximizing the log-likelihood of the data.</li>
+</ol>
+
+<p>DKL achieves the minimum zero when p(x) == q(x) everywhere.</p>
+
+<p>It is noticeable from the formula that KL divergence is asymmetric. In cases where P(x) is close to zero, but Q(x) is significantly non-zero, the q’s effect is disregarded. It could cause buggy results when the intention was just to measure the similarity between two equally important distributions.</p>
+
+<ol>
+  <li>Jensen–Shannon Divergence is another measure of similarity between two probability distributions. JS (Jensen–Shannon) divergence is symmetric and relatively smoother and is bounded by [0,1].</li>
+</ol>
+
+<p>Given two Gaussian distributions, P with mean=0 and std=1 and Q with mean=1 and std=1. The average of two distributions is labelled as m=(p+q)/2. KL divergence DKL is asymmetric but JS divergence DJS is symmetric.</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/e3/23/better-generative-modelling-through-wasserstein-GANs-fig03.png" alt="js"></p>
+
+<h1 id="generative-adversarial-network-gan">
+<a class="anchor" href="#generative-adversarial-network-gan" aria-hidden="true"><span class="octicon octicon-link"></span></a>Generative Adversarial Network (GAN)</h1>
+<p>GAN consists of two models:</p>
+<ul>
+  <li>A discriminator D estimates the probability of a given sample coming from the real dataset. It works as a critic and is optimized to tell the fake samples from the real ones.</li>
+  <li>A generator G outputs synthetic samples given a noise variable input z (z brings in potential output diversity). It is trained to capture the real data distribution so that its generative samples can be as real as possible, or in other words, it can trick the discriminator to offer a high probability.</li>
+</ul>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/a1/ad/better-generative-modelling-through-wasserstein-GANs-fig04.png" alt="gan"></p>
+
+<h1 id="use-wasserstein-distance-as-gan-loss-function">
+<a class="anchor" href="#use-wasserstein-distance-as-gan-loss-function" aria-hidden="true"><span class="octicon octicon-link"></span></a>Use Wasserstein Distance as GAN Loss Function</h1>
+
+<p>It is almost impossible to exhaust all the joint distributions in Π(pr,pg) to compute infγ∼Π(pr,pg). Instead, the authors proposed a smart transformation of the formula based on the Kantorovich-Rubinstein duality:</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/6f/74/better-generative-modelling-through-wasserstein-GANs-fig05.png" alt="kr"></p>
+
+<p>One big problem involves maintaining the K-Lipschitz continuity of fw during the training to make everything work out. The paper presented a simple but very practical noteworthy trick: after the gradient gets updated, clamping the weights w to a small window is required, such as [−0.01,0.01], resulting in a compact parameter space W; and thus, fw obtains it’s lower and upper bounds in order to preserve the Lipschitz continuity.</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/7e/3f/better-generative-modelling-through-wasserstein-GANs-fig06.png" alt="wgan"></p>
+
+<p>Compared to the original GAN algorithm, the WGAN undertakes the following changes:</p>
+<ul>
+  <li>After every gradient update on the critic function, we are required to clamp the weights to a small fixed range is required, usually [−c,c].</li>
+  <li>Use a new loss function derived from the Wasserstein distance.  The discriminator model does not play as a direct critic but rather a helper for estimating the Wasserstein metric between real and generated data distributions.</li>
+</ul>
+
+<p>Empirically the authors recommended usage of RMSProp optimizer on the critic, rather than a momentum-based optimizer such as Adam which could cause instability in the model training.</p>
+
+<h2 id="improved-gan-training">
+<a class="anchor" href="#improved-gan-training" aria-hidden="true"><span class="octicon octicon-link"></span></a>Improved GAN Training</h2>
+
+<p>The following suggestions are proposed to help stabilize and improve the training of GANs.</p>
+<ul>
+  <li>Adding noises - Based on the discussion in the previous section, it is now known that Pr and Pg are disjointed in a high dimensional space and they may become the reason for the problem of vanishing gradient.To synthetically “spread out” the distribution and to create higher chances for two probability distributions to have overlaps, one solution is to add continuous noises onto the inputs of the discriminator D.</li>
+  <li>One-sided label smoothing - When we are feeding the discriminator, instead of providing the labels as 1 and 0, this paper proposed using values such as 0.9 and 0.1. This will help in reduce the vulnerabilities in Network.</li>
+</ul>
+
+<p>Wasserstein metric is proposed to replace JS divergence because it has a much smoother value space.</p>
+
+<h1 id="overview-of-dcgan">
+<a class="anchor" href="#overview-of-dcgan" aria-hidden="true"><span class="octicon octicon-link"></span></a>Overview of DCGAN</h1>
+
+<p>In recent years, supervised learning with convolutional networks (CNNs) has seen huge adoption in computer vision applications. As compared to supervised learning, ConvNets have received little attention. Deep convolutional generative adversarial networks (DCGANs) have certain architectural constraints and demonstrate a strong potential for unsupervised learning. Training on various image datasets show convincing evidence that a deep convolutional adversarial pair learns a hierarchy of representations from object parts to scenes in both the generator and discriminator. Additionally, the learned features were used for novel tasks - demonstrating their applicability as general image representations.</p>
+
+<p><img src="https://software.intel.com/sites/default/files/managed/59/e0/better-generative-modelling-through-wasserstein-GANs-fig07.png" alt="dcgan"></p>
+
+<h1 id="problem-with-gans">
+<a class="anchor" href="#problem-with-gans" aria-hidden="true"><span class="octicon octicon-link"></span></a>Problem with GANs</h1>
+
+<ul>
+  <li>It’s harder to achieve Nash Equilibrium - Since there are two neural networks (generator and discriminator), they are being trained simultaneously to find a Nash Equilibrium. In the whole process each player updates the cost function independently without considering the updates of cost function by another network. This method cannot assure a convergence, which is the stated objective.</li>
+  <li>Vanishing gradient - When the discriminator works as required, the distribution D(x) equals 1 when x belongs to Pr and vice versa. In this process, loss function L fails to zero and results in no gradients to update the loss during the training process. This figure shows that as the discriminator gets increasingly better, the gradient vanishes fast, tending to 0.</li>
+  <li>Use better metric of distribution similarity - The loss function as proposed in the vanilla GAN (by Goodfellow et al.) measures the JS divergence between the distributions of Pr and P(theta). This metric fails to provide a meaningful value when two distributions are disjointed.</li>
+</ul>
+
+<p>Replacing JS divergence with the Wasserstein metric gives a much smoother value space.</p>
+
+<p>Training a Generative Adversarial Network faces a major problem:</p>
+
+<ul>
+  <li>If the discriminator works as required, the gradient of the loss function starts tending to zero. As a process loss cannot be updated, training becomes very slow or the model gets stuck.</li>
+  <li>If the discriminator behaves badly, the generator does not have accurate feedback and the loss function cannot represent the reality.</li>
+</ul>
+
+<h2 id="evaluation-metric">
+<a class="anchor" href="#evaluation-metric" aria-hidden="true"><span class="octicon octicon-link"></span></a>Evaluation Metric</h2>
+
+<p>GANs faced the problem of good objective function that can give better insight of the whole training process. A good evaluation metric was needed. Wasserstein Distance sought to address this problem.</p>
+
+  </div><a class="u-url" href="/blog/gan/deep-learning/computer-vision/2018/03/26/wgan.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>AI Research</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/prajjwal1" title="prajjwal1"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/prajjwal_1" title="prajjwal_1"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

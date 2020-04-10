@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Transformer Models in NLP | Prajjwal’s blog</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="Transformer Models in NLP" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Understanding how attention works in transformers" />
+<meta property="og:description" content="Understanding how attention works in transformers" />
+<link rel="canonical" href="https://prajjwal1.github.io/blog/attention/nlp/transformers/2018/12/20/transformers.html" />
+<meta property="og:url" content="https://prajjwal1.github.io/blog/attention/nlp/transformers/2018/12/20/transformers.html" />
+<meta property="og:site_name" content="Prajjwal’s blog" />
+<meta property="og:image" content="https://prajjwal1.github.io/blog/images/transformer/cover.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-12-20T00:00:00-06:00" />
+<script type="application/ld+json">
+{"datePublished":"2018-12-20T00:00:00-06:00","headline":"Transformer Models in NLP","image":"https://prajjwal1.github.io/blog/images/transformer/cover.jpg","description":"Understanding how attention works in transformers","mainEntityOfPage":{"@type":"WebPage","@id":"https://prajjwal1.github.io/blog/attention/nlp/transformers/2018/12/20/transformers.html"},"@type":"BlogPosting","url":"https://prajjwal1.github.io/blog/attention/nlp/transformers/2018/12/20/transformers.html","dateModified":"2018-12-20T00:00:00-06:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://prajjwal1.github.io/blog/feed.xml" title="Prajjwal's blog" /><link rel="shortcut icon" type="image/x-icon" href="/blog/images/favicon.ico"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Transformer Models in NLP | Prajjwal’s blog</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="Transformer Models in NLP" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Understanding how attention works in transformers" />
+<meta property="og:description" content="Understanding how attention works in transformers" />
+<link rel="canonical" href="https://prajjwal1.github.io/blog/attention/nlp/transformers/2018/12/20/transformers.html" />
+<meta property="og:url" content="https://prajjwal1.github.io/blog/attention/nlp/transformers/2018/12/20/transformers.html" />
+<meta property="og:site_name" content="Prajjwal’s blog" />
+<meta property="og:image" content="https://prajjwal1.github.io/blog/images/transformer/cover.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-12-20T00:00:00-06:00" />
+<script type="application/ld+json">
+{"datePublished":"2018-12-20T00:00:00-06:00","headline":"Transformer Models in NLP","image":"https://prajjwal1.github.io/blog/images/transformer/cover.jpg","description":"Understanding how attention works in transformers","mainEntityOfPage":{"@type":"WebPage","@id":"https://prajjwal1.github.io/blog/attention/nlp/transformers/2018/12/20/transformers.html"},"@type":"BlogPosting","url":"https://prajjwal1.github.io/blog/attention/nlp/transformers/2018/12/20/transformers.html","dateModified":"2018-12-20T00:00:00-06:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+<link href="https://unpkg.com/@primer/css/dist/primer.css" rel="stylesheet" />
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css"><link type="application/atom+xml" rel="alternate" href="https://prajjwal1.github.io/blog/feed.xml" title="Prajjwal's blog" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css" integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous">
+    <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML"> </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js" integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head><body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/blog/">Prajjwal&#39;s blog</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/blog/about/">About Me</a><a class="page-link" href="/blog/search/">Search</a><a class="page-link" href="/blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Transformer Models in NLP</h1><p class="page-description">Understanding how attention works in transformers</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2018-12-20T00:00:00-06:00" itemprop="datePublished">
+        Dec 20, 2018
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      10 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/blog/categories/#attention">attention</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blog/categories/#nlp">nlp</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blog/categories/#transformers">transformers</a>
+        
+      
+      </p>
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h1"><a href="#highlights-of-transformers">Highlights of Transformers</a></li>
+<li class="toc-entry toc-h1"><a href="#component-of-transformer">Component of Transformer</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#encoder">Encoder</a></li>
+<li class="toc-entry toc-h2"><a href="#decoder">Decoder</a></li>
+<li class="toc-entry toc-h2"><a href="#attention">Attention</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#scaled-dot-product-attention">Scaled Dot product Attention</a></li>
+<li class="toc-entry toc-h3"><a href="#matrix-multiplication-of-self-attention">Matrix multiplication of self attention</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#multihead-attention">MultiHead Attention</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h1"><a href="#applications-of-attention">Applications of Attention</a></li>
+<li class="toc-entry toc-h1"><a href="#embeddings-and-softmax">Embeddings and Softmax</a></li>
+<li class="toc-entry toc-h1"><a href="#positional-encodings">Positional Encodings</a></li>
+<li class="toc-entry toc-h1"><a href="#why-use-self-attention">Why use Self Attention?</a></li>
+<li class="toc-entry toc-h1"><a href="#transformers-in-a-nutshell">Transformers in a Nutshell</a></li>
+<li class="toc-entry toc-h1"><a href="#dropout">Dropout</a></li>
+<li class="toc-entry toc-h1"><a href="#label-smoothing">Label smoothing</a></li>
+</ul><p>Earlier Seq2Seq used to make use of encoder,decoder architecture. The best models make use of attention mechanisms. Attention mechanisms have also become an integral part allowing modelling of dependencies without regard to their respective distances. In this article, we look at another architecture as introduced in <a href="https://arxiv.org/abs/1706.03762">Attention is all you need</a>.</p>
+
+<h1 id="highlights-of-transformers">
+<a class="anchor" href="#highlights-of-transformers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Highlights of Transformers</h1>
+
+<ul>
+  <li>Transformers outperform both recurrent and convolutional models</li>
+  <li>Well suited for language understanding</li>
+  <li>Superior than Seq2Seq</li>
+  <li>Requires less computation,transformers are faster to train</li>
+  <li>RNNs/CNNs can’t make proper use of parallel processing hardware (GPU/TPU),</li>
+  <li>Can work in parallel (difficult to learn dependencies from distant positions) . Takes constant number of operations. Works by averaging attention weighted vectors (dealt in multi head attention step)</li>
+</ul>
+
+<p>Recurrent models generate hidden states H(t) as a function of previous hidden state H(t-1), this precludes parallelization within training examples which becomes crucial when lengths of sequences becomes large.</p>
+
+<p><img src="/images/transformer/hidden_state_lstm.png" alt=""></p>
+
+<p><em>Transformer</em> consist of <em>self attention</em> layer and a feed forward network. Self attention models relationships between all words irrespective of their positions in a sentence.</p>
+
+<p>In transduction models, encoder maps an input sequence of symbol representations to a sequence of continuous representations. The decoder then generates an output sequence of symbols one element at a time. They are auto regressive which means consuming previously generated symbols as additional input when generating the next.</p>
+
+<h1 id="component-of-transformer">
+<a class="anchor" href="#component-of-transformer" aria-hidden="true"><span class="octicon octicon-link"></span></a>Component of Transformer</h1>
+
+<h2 id="encoder">
+<a class="anchor" href="#encoder" aria-hidden="true"><span class="octicon octicon-link"></span></a>Encoder</h2>
+
+<p>Each layer has two layers . First is multi head attention layer mechanism and the second one is simple position wise feedforward network. They also make use of residual connection around each of sub layers.</p>
+
+<p>Skip connection works as follows:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>LayerNorm(x+sublayer(x))
+</code></pre></div></div>
+<p><code class="highlighter-rouge">Sublayer(x)</code> is the function that is being generated from the sublayer. To make use of residual connection when performing addition, all sub layers as well as embedding layers produce output of specified dimension.
+<img src="/images/transformer/components/transformer.jpeg" alt=""></p>
+
+<p>Encoder looks at all the words and creates a new representation of those words after processing word through it’s components. Each word has flows through it’s own path (that means getting processed in parallel), self attention has shared dependencies of these words but feed forward network doesn’t have it.</p>
+
+<p><img src="/images/transformer/components/encoder_transformer.jpeg" alt=""></p>
+
+<p><em>Self attention layer</em> is a process of relating different parts of sequence in order to compute representation of sequence) computes every word in sentence attention scores of all the words with respect to the current word. This score denotes how much value a particular word needs to given as compared to present word.</p>
+
+<p><img src="/images/transformer/components/encoder.jpeg" alt=""></p>
+
+<p>Feed forward network expects a matrix as input. These attention scores are used as weights for a weighted representation of all words and then fed to feed forward network.</p>
+
+<p>In NMT,encoder creates representation of words,decoder then generates word in consultation with representation from encoder output. Transformer starts with embeddings of words,then self attention aggregates information from all the words and generates new representation per word from the entire context</p>
+
+<p><img src="/images/transformer/components/encoder_nutshell.jpeg" alt=""></p>
+
+<h2 id="decoder">
+<a class="anchor" href="#decoder" aria-hidden="true"><span class="octicon octicon-link"></span></a>Decoder</h2>
+
+<p>It is also composed of same number of identical layers. It also comprises of two sub layers present in each layer of encoder, in addition it also has one layer which performs multi head attention over the output of encoder stack. It also makes use of residual connection with layer norm. To prevent positions from attending to subsequent positions, self attention layer has also been modified.</p>
+
+<p><img src="/images/transformer/components/decoder.jpeg" alt=""></p>
+
+<p>Such masking makes sure that output embeddings are offset by one position. It ensures that prediction of position i can depend only on known outputs at positions less than i</p>
+
+<p><img src="/images/transformer/components/decoder_details.jpeg" alt=""></p>
+
+<p>It attends to previously generated word+final representations generated from encoder. We can also visualize how much attention transformer pays to other parts of sentence when processing the current word ,thus giving insights to how information flows. Encoder decoder attention in decoder helps it to focus on relevant parts of the the parts of sentence.</p>
+
+<p>The embedding representation is dealt in the bottom most encoder and the rest of the encoders deal with outputs of other encoders. Encoders receive a list of vectors (default size=512)</p>
+
+<p><img src="/images/transformer/components/attention_viz.png" alt=""></p>
+
+<h2 id="attention">
+<a class="anchor" href="#attention" aria-hidden="true"><span class="octicon octicon-link"></span></a>Attention</h2>
+
+<p>Can be described as a mapping a query and set(key value pairs) to an output. Query,Keys, Values are all vectors.</p>
+
+<p>Output can be computed as weighted sum of values where weight assigned to each value is computed by compatibility function of query with corresponding key . There are two types of ways attention is usually computed:</p>
+
+<h3 id="scaled-dot-product-attention">
+<a class="anchor" href="#scaled-dot-product-attention" aria-hidden="true"><span class="octicon octicon-link"></span></a>Scaled Dot product Attention</h3>
+
+<ul>
+  <li>
+    <p>Queries, Keys and Values are computed which are of dimension dk and dv respectively
+<img src="/images/transformer/components/scaled_dot_product.jpeg" alt=""></p>
+  </li>
+  <li>Take Dot Product of Query with all Keys and divide by scaling factor sqrt(dk)</li>
+  <li>We compute attention function on set of queries simultaneously packed together into matrix Q</li>
+  <li>Keys and Values are packed together as matrix</li>
+</ul>
+
+<p><img src="/images/transformer/components/scaled_dot_product_2.jpeg" alt=""></p>
+
+<ul>
+  <li>Most common attention functions are additive and dot product</li>
+</ul>
+
+<p>This is similar to dot product attention (only difference being scaling factor).</p>
+
+<h3 id="matrix-multiplication-of-self-attention">
+<a class="anchor" href="#matrix-multiplication-of-self-attention" aria-hidden="true"><span class="octicon octicon-link"></span></a>Matrix multiplication of self attention</h3>
+
+<p>We perform calculation of Q,K,V vectors and then pack all our embeddings into a matrix and multiply the weight matrices we’ve obtained from training.</p>
+
+<p><img src="/images/transformer/components/matmul_self_attention.jpeg" alt=""></p>
+
+<p><img src="/images/transformer/components/additive_attention.jpeg" alt=""></p>
+
+<p><em>Additive Attention</em>: Computes compatibility function using feed forward network with single hidden layer</p>
+
+<ul>
+  <li>
+    <p>These two methods are similar in theoretical complexity although dot product attention is much faster and space efficient in practice. It can be optimized with matrix multiplication</p>
+  </li>
+  <li>If dk is small, these two methods of computing attention function may perform similarly. If dk is large additive may outperform dot product method of computing attention</li>
+  <li>Dot product grows in magnitude with large values of dk, it may push softmax into regions where it may have small gradients and then it can have a hard time coming out of saddle points. To deal with this, we use this scaling factor of sqrt(dk)</li>
+</ul>
+
+<h2 id="multihead-attention">
+<a class="anchor" href="#multihead-attention" aria-hidden="true"><span class="octicon octicon-link"></span></a>MultiHead Attention</h2>
+
+<p>We linearly project Q,K,V vectors h times with differently learned projections of following dimensions: dq,dk,dv. Perform attention function in parallel which outputs vector of dimension dv. These are then concatenated and then projected again</p>
+
+<p><img src="/images/transformer/components/multi_head_att.jpeg" alt=""></p>
+
+<p>We linearly project Q,K,V vectors h times with differently learned projections of following dimensions: dq,dk,dv. Perform attention function in parallel which outputs vector of dimension dv. These are then concatenated and then projected again</p>
+
+<p>Allows model to jointly attend to different representations subspaces at different positions. We’ve multiple set of Q,K,V matrices (if transformer uses n heads, we will have n matrices) . Each of these are randomly initialized and then after performing training, each set is used to project input embeddings into different representation subspace.</p>
+
+<p><img src="/images/transformer/components/multi_head_att_detail.jpeg" alt=""></p>
+
+<p>For input to feedforward network, we take all these matrices and concatenate them by multiplying them with an additional matrix since the feedforward network requires only one input tensor.</p>
+
+<h1 id="applications-of-attention">
+<a class="anchor" href="#applications-of-attention" aria-hidden="true"><span class="octicon octicon-link"></span></a>Applications of Attention</h1>
+
+<p>We obtain Query vector from previous decoder layer and Key,Value vectors are obtained from output of Encoder. This mimics Seq2Seq models.</p>
+<ul>
+  <li>Self attention in Encoder: In self attention, K,V,Q vectors come from same place, Each position in encoder can attend to all positions in previous layer of encoder</li>
+  <li>Self Attention in Decoder allows position in decoder to attend to all the positions in the decoder and up to current position . Leftward information flow is prevented to preserve autoregressive property</li>
+</ul>
+
+<p><img src="/images/transformer/components/feed_forward.jpeg" alt=""></p>
+
+<h1 id="embeddings-and-softmax">
+<a class="anchor" href="#embeddings-and-softmax" aria-hidden="true"><span class="octicon octicon-link"></span></a>Embeddings and Softmax</h1>
+
+<p>Just like other Sequence transduction models, we are using learned embeddings to convert input,output tokens into a vector. These happens at the base of encoder. In the first bottom encoder, we would be feeding these word embeddings and for the rest, we would be feeding output of encoders. We then make use of linear transformation and softmax function to convert the decoder output to predict probabilities for each possible token we have to consider. Same matrix is being shared for these two embedding layers and pre-softmax linear transformation</p>
+
+<h1 id="positional-encodings">
+<a class="anchor" href="#positional-encodings" aria-hidden="true"><span class="octicon octicon-link"></span></a>Positional Encodings</h1>
+
+<p>This model doesn’t make use of either convolution or recurrence, to make sure that model is making use of order of sequence, we’re required to place this information in the form of vector to each of input embeddings at the bottom of encoder and decoder stacks. This vectors helps model to learn a specific pattern of determining relative position of words in sequences. This is being called positional encodings. Intuitively, adding these values to embeddings provide meaningful distance between vectors themselves after they get projected as Q,K,V and in dot product attention.</p>
+
+<p><img src="/images/transformer/components/pos_enc.jpeg" alt=""></p>
+
+<p>Sinusoidal function is being considered as it may allow model to interpolate better for longer sequences. Learned positional embeddings were also made use of, but they performed practically same.</p>
+
+<h1 id="why-use-self-attention">
+<a class="anchor" href="#why-use-self-attention" aria-hidden="true"><span class="octicon octicon-link"></span></a>Why use Self Attention?</h1>
+
+<p>Comparing convolutional and recurrent operations which are commonly used for mapping variable length sequences of symbol representations to the output (eg. hidden layer in seq2seq).</p>
+
+<p>Transformers have an edge over:</p>
+
+<ul>
+  <li>Complexity per layer</li>
+  <li>Amount of computation that can be parallelized</li>
+  <li>Path length dependencies. (higher it is, more difficult it is for RNNs).</li>
+</ul>
+
+<p>Self Attention connects all positions with constant number of sequentially executed operations. In terms of computational complexity, self attention is faster than recurrent operations when (seq length &lt; representation dimensionality d)</p>
+
+<p>In case of convolutions:</p>
+
+<ul>
+  <li>Kernels do not connect all pairs of input and output</li>
+  <li>Requires stack of conv layers in case of contiguous kernels</li>
+  <li>More expensive operations than recurrent</li>
+</ul>
+
+<h1 id="transformers-in-a-nutshell">
+<a class="anchor" href="#transformers-in-a-nutshell" aria-hidden="true"><span class="octicon octicon-link"></span></a>Transformers in a Nutshell</h1>
+
+<p>Each sublayer makes use of residual connections which is them followed by layer normalization. We take embedding, create vectors along with positional encodings, feed them to self attention. Then it gets processed by layer norm layer (adds and normalizes two matrices). Then the output vector is placed towards feedforward network which then outputs it towards layer norm. The generated vectors from output of top encoders are transformed into set of K,V vectors which are then passed on to decoder as well. The intuition behind them is that encoder decoder attention in decoder layer helps decoder to focus on appropriate places in input sequence.</p>
+
+<p><img src="/images/transformer/components/transformers_nutshell.jpeg" alt=""></p>
+
+<p>In the case of decoder, self attention layers are only allowed to attend to earlier positions in the output sequence . We mask future positions before softmax. The linear layer at the end of decoder is responsible for converting the resultant vector into a very large logit vector. Softmax turns all the scores into probabilities . We take the one with the highest probability and the word associated with it is chosen.</p>
+
+<h1 id="dropout">
+<a class="anchor" href="#dropout" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dropout</h1>
+
+<p>Residual dropout was used for carrying out this experiment. It’s being used in two places</p>
+
+<ul>
+  <li>Output of each sub layer before it is added to input layer and normalization.</li>
+  <li>It has also has been applied to the sums of embeddings and positional encodings in both encoder decoder stacks</li>
+</ul>
+
+<h1 id="label-smoothing">
+<a class="anchor" href="#label-smoothing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Label smoothing</h1>
+
+<p>It can also be used. It hurts perplexity,as the model learns to be sure but improves BLEU score and accuracy</p>
+
+<p>In this work, model selects the word with the highest probability from probability distribution but throws away all the rest information. This is greedy decoding. Another way of carrying out this process, is to use beam search. In that, we have a beam size. As per beam size, we consider those n words (beam size being equal n) and consider those n words, then in the next run, we consider the n+1 word considering the output positions in previous n word whichever produced the least error.</p>
+
+<p><img src="/images/transformer/components/greedy_decoding.jpeg" alt=""></p>
+
+
+  </div><a class="u-url" href="/blog/attention/nlp/transformers/2018/12/20/transformers.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>AI Research</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/prajjwal1" title="prajjwal1"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/prajjwal_1" title="prajjwal_1"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
